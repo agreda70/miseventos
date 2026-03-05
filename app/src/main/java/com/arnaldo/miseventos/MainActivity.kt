@@ -6,23 +6,20 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.arnaldo.miseventos.ui.theme.AdminScreen
 import com.arnaldo.miseventos.ui.theme.CalendarScreen
-import com.arnaldo.miseventos.ui.theme.MisEventosTheme
 import com.arnaldo.miseventos.ui.theme.PinScreen
+import com.arnaldo.miseventos.ui.theme.MisEventosTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Obtenemos el acceso a la Base de Datos
+        // Inicializamos los dos pilares: Base de datos y Seguridad
         val db = (application as EventApp).database.eventDao()
+        val securityManager = AppSecurityManager(this)
 
         setContent {
             MisEventosTheme {
@@ -34,7 +31,10 @@ class MainActivity : ComponentActivity() {
                 ) {
                     when (currentScreen) {
                         "auth" -> {
-                            PinScreen(onPinCorrect = { currentScreen = "calendar" })
+                            PinScreen(
+                                securityManager = securityManager,
+                                onAuthSuccess = { currentScreen = "calendar" }
+                            )
                         }
                         "calendar" -> {
                             CalendarScreen(

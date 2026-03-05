@@ -1,5 +1,6 @@
 package com.arnaldo.miseventos.ui.theme
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,79 +12,77 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.arnaldo.miseventos.AppSecurityManager
+import kotlinx.coroutines.launch
 
 @Composable
-fun PinScreen(onPinCorrect: () -> Unit) {
-    // Aquí guardamos lo que el usuario va escribiendo. Empieza vacío ("").
-    var pin by remember { mutableStateOf("") }
-    // Aquí guardamos si hay un error (ej: si puso mal el PIN)
-    var isError by remember { mutableStateOf(false) }
+fun PinScreen(
+    securityManager: AppSecurityManager,
+    onAuthSuccess: () -> Unit
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    // El PIN correcto por ahora lo dejaremos fijo para probar.
-    // Más adelante lo guardaremos en la memoria del teléfono.
-    val pinCorrecto = "1234"
+    // Leemos los datos de DataStore
+    val savedPin by securityManager.userPin.collectAsState(initial = null)
+    val savedQuestion by securityManager.securityQuestion.collectAsState(initial = null)
+    val savedAnswer by securityManager.securityAnswer.collectAsState(initial = null)
 
-    // Column organiza los elementos de arriba hacia abajo
-    Column(
-        modifier = Modifier
-            .fillMaxSize() // Ocupa toda la pantalla
-            .padding(16.dp), // Deja un margen en los bordes
-        horizontalAlignment = Alignment.CenterHorizontally, // Centra a lo ancho
-        verticalArrangement = Arrangement.Center // Centra a lo alto
-    ) {
-        // Título de la pantalla
-        Text(
-            text = "Bienvenido a Mis Eventos",
-            style = MaterialTheme.typography.headlineSmall
-        )
+    var inputPin by remember { mutableStateOf("") }
+    var inputQuestion by remember { mutableStateOf("") }
+    var inputAnswer by remember { mutableStateOf("") }
+    var isRecovering by remember { mutableStateOf(false) }
 
-        Spacer(modifier = Modifier.height(32.dp)) // Un espacio en blanco
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
 
-        // El campo donde el usuario escribe
-        OutlinedTextField(
-            value = pin,
-            onValueChange = { nuevoTexto ->
-                pin = nuevoTexto // Actualiza el texto cada vez que teclea
-                isError = false // Si teclea de nuevo, quitamos el error
-            },
-            label = { Text("Ingresa tu PIN") },
-            // Esto hace que salga el teclado numérico
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            // Esto transforma los números en puntitos (****)
-            visualTransformation = PasswordVisualTransformation(),
-            isError = isError,
-            singleLine = true
-        )
+        if (savedPin == null) {
+            // --- MODO CONFIGURACIÓN INICIAL ---
+            Text("Configura tu acceso", style = MaterialTheme.typography.headlineMedium)
+            OutlinedTextField(value = inputPin, onValueChange = { if(it.length <= 4) inputPin = it }, label = { Text("Crea un PIN de 4 dígitos") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword))
+            OutlinedTextField(value = inputQuestion, onValueChange = { inputQuestion = it }, label = { Text("Pregunta de seguridad (ej: Nombre mascota)") })
+            OutlinedTextField(value = inputAnswer, onValueChange = { inputAnswer = it }, label = { Text("Respuesta") })
 
-        if (isError) {
-            Text(text = "PIN incorrecto, intenta de nuevo.", color = MaterialTheme.colorScheme.error)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // El botón para entrar
-        Button(
-            onClick = {
-                // ¿Qué pasa al hacer clic? Verificamos el PIN
-                if (pin == pinCorrecto) {
-                    onPinCorrect() // Si es correcto, ejecutamos la acción para ir al Calendario
-                } else {
-                    isError = true // Si es incorrecto, mostramos el error
-                    pin = "" // Borramos lo que escribió para que vuelva a intentar
+            Button(onClick = {
+                if(inputPin.length == 4 && inputQuestion.isNotBlank() && inputAnswer.isNotBlank()) {
+                    scope.launch { securityManager.saveCredentials(inputPin, inputQuestion, inputAnswer) }
                 }
-            }
-        ) {
-            Text("Entrar")
+            }) { Text("Empezar a usar la app") }
+
+        } else if (isRecovering) {
+            // --- MODO RECUPERACIÓN ---
+            Text("Recuperar PIN", style = MaterialTheme.typography.headlineSmall)
+            Text(savedQuestion ?: "")
+            OutlinedTextField(value = inputAnswer, onValueChange = { inputAnswer = it }, label = { Text("Tu respuesta") })
+            Button(onClick = {
+                if(inputAnswer.trim().lowercase() == savedAnswer?.trim()?.lowercase()) {
+                    Toast.makeText(context, "Tu PIN es: $savedPin", Toast.LENGTH_LONG).show()
+                    isRecovering = false
+                }
+            }) { Text("Verificar") }
+            TextButton(onClick = { isRecovering = false }) { Text("Volver") }
+
+        } else {
+            // --- MODO LOGIN NORMAL ---
+            Text("Ingresa tu PIN", style = MaterialTheme.typography.headlineSmall)
+            OutlinedTextField(value = inputPin, onValueChange = {
+                inputPin = it
+                if(it == savedPin) onAuthSuccess()
+            }, label = { Text("PIN") }, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword))
+
+            TextButton(onClick = { isRecovering = true }) { Text("Olvidé mi PIN") }
         }
     }
 }

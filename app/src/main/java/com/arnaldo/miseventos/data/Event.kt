@@ -2,6 +2,7 @@ package com.arnaldo.miseventos.data
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
@@ -13,7 +14,8 @@ import androidx.room.PrimaryKey
             childColumns = ["eventTypeId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["eventDate", "eventTypeId"], unique = true)]
 )
 data class Event(
     @PrimaryKey(autoGenerate = true)

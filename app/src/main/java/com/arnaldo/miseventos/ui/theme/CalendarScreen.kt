@@ -4,14 +4,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,145 +34,111 @@ import java.util.Locale
 fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDialog by remember { mutableStateOf(false) }
-
-    // El "scope" nos permite ejecutar tareas en segundo plano (como guardar en base de datos)
     val scope = rememberCoroutineScope()
 
-    // 1. Traemos los Tipos de Eventos (Administración)
     val eventTypes by eventDao.getAllEventTypes().collectAsState(initial = emptyList())
-
-    // 2. Traemos TODOS los eventos del mes actual que estamos viendo
-    // Convertimos la fecha a formato "YYYY-MM" (ej: "2026-03") para buscar en la base de datos
     val yearMonthString = YearMonth.from(selectedDate).toString()
-    val eventsOfThisMonth by eventDao.getEventsByMonth(yearMonthString).collectAsState(initial = emptyList())
-
-    val monthName = selectedDate.month.getDisplayName(TextStyle.FULL, Locale("es", "ES"))
-    val year = selectedDate.year
+    val eventsByMonth by eventDao.getEventsByMonth(yearMonthString).collectAsState(initial = emptyList())
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // --- CABECERA: MES, AÑO, RESUMEN Y BOTONES ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Flecha Mes Anterior
             IconButton(onClick = { selectedDate = selectedDate.minusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Mes anterior")
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Mes anterior")
             }
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "${monthName.replaceFirstChar { it.uppercase() }} $year",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                // Resumen dinámico: Cuenta cuántos eventos hay en eventsOfThisMonth
-                Text(text = "Total eventos: ${eventsOfThisMonth.size}", color = Color.Gray, fontSize = 12.sp)
-            }
-
-            // Flecha Mes Siguiente
+            Text(
+                text = "${selectedDate.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${selectedDate.year}",
+                style = MaterialTheme.typography.titleLarge
+            )
             IconButton(onClick = { selectedDate = selectedDate.plusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Mes siguiente")
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente")
             }
-
-            // Botón Configuración
             IconButton(onClick = onNavigateToAdmin) {
-                Icon(Icons.Default.Settings, contentDescription = "Administración")
+                Icon(Icons.Default.Settings, "Administrar")
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        // Tarjetas de resumen del mes
+        LazyRow(modifier = Modifier.padding(vertical = 8.dp)) {
+            items(eventTypes) { type ->
+                val count = eventsByMonth.count { it.eventTypeId == type.id }
+                if (count > 0) {
+                    Card(
+                        modifier = Modifier.padding(end = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(type.color).copy(alpha = 0.1f))
+                    ) {
+                        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(AppIcons.getIcon(type.iconName), null, modifier = Modifier.size(16.dp), tint = Color(type.color))
+                            Text(" ${type.name}: $count", style = MaterialTheme.typography.labelMedium)
+                        }
+                    }
+                }
+            }
+        }
 
-        // --- DÍAS DE LA SEMANA ---
+        // Días de la semana
         Row(modifier = Modifier.fillMaxWidth()) {
             val diasSemana = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
             diasSemana.forEach { dia ->
                 Text(
-                    text = dia, modifier = Modifier.weight(1f),
+                    text = dia,
+                    modifier = Modifier.weight(1f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    fontWeight = FontWeight.Bold, fontSize = 12.sp
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
                 )
             }
         }
 
-        // --- CUADRÍCULA ---
-        // Le pasamos a la cuadrícula los eventos y los tipos para que sepa qué dibujar
+        // Cuadrícula del mes
         CalendarGrid(
             date = selectedDate,
-            events = eventsOfThisMonth,
-            eventTypes = eventTypes,
-            onDayClick = { day ->
-                selectedDate = selectedDate.withDayOfMonth(day)
-                showDialog = true // Mostramos el modal
-            }
-        )
+            events = eventsByMonth,
+            eventTypes = eventTypes
+        ) { day ->
+            selectedDate = selectedDate.withDayOfMonth(day)
+            showDialog = true
+        }
     }
 
-    // --- EL MODAL (Dialog) ---
+    // Modal de selección múltiple (Checkboxes)
     if (showDialog) {
-        // Filtramos de todos los eventos del mes, SOLO los que coinciden con el día seleccionado
-        val eventsOfSelectedDay = eventsOfThisMonth.filter { it.eventDate == selectedDate.toString() }
-
+        val eventsToday = eventsByMonth.filter { it.eventDate == selectedDate.toString() }
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Día ${selectedDate.dayOfMonth} de ${monthName}") },
+            title = { Text("Eventos del día ${selectedDate.dayOfMonth}") },
             text = {
-                Column {
-                    // SECCIÓN A: Mostrar los eventos que ya ocurrieron este día (Tu requerimiento)
-                    if (eventsOfSelectedDay.isNotEmpty()) {
-                        Text("Eventos registrados:", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                        eventsOfSelectedDay.forEach { event ->
-                            // Buscamos el tipo de evento para saber su nombre y color
-                            val type = eventTypes.find { it.id == event.eventTypeId }
-                            if (type != null) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(type.color), modifier = Modifier.size(16.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(type.name, fontSize = 14.sp)
-                                }
-                            }
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        HorizontalDivider() // Una línea separadora
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    // SECCIÓN B: Agregar nuevo evento
-                    Text("Registrar nuevo evento:", fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (eventTypes.isEmpty()) {
-                        Text("No hay tipos. Ve al engranaje ⚙️ para crear uno.", color = Color.Red)
-                    } else {
-                        LazyColumn(modifier = Modifier.heightIn(max = 200.dp)) {
-                            items(eventTypes) { type ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth()
-                                        .clickable {
-                                            // ¡AQUÍ GUARDAMOS EN LA BASE DE DATOS!
-                                            scope.launch {
-                                                val newEvent = Event(
-                                                    eventDate = selectedDate.toString(), // Guardamos "YYYY-MM-DD"
-                                                    eventTypeId = type.id
-                                                )
-                                                eventDao.insertEvent(newEvent)
-                                            }
-                                            showDialog = false
+                LazyColumn {
+                    items(eventTypes) { type ->
+                        val isSelected = eventsToday.any { it.eventTypeId == type.id }
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    scope.launch {
+                                        if (isSelected) {
+                                            eventDao.deleteEvent(selectedDate.toString(), type.id)
+                                        } else {
+                                            eventDao.insertEvent(Event(eventDate = selectedDate.toString(), eventTypeId = type.id))
                                         }
-                                        .padding(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(type.color))
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Text(type.name)
+                                    }
                                 }
-                            }
+                                .padding(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(checked = isSelected, onCheckedChange = null)
+                            Icon(AppIcons.getIcon(type.iconName), null, tint = Color(type.color))
+                            Text(" ${type.name}", modifier = Modifier.padding(start = 8.dp))
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = { showDialog = false }) { Text("Cerrar") } }
+            confirmButton = {
+                Button(onClick = { showDialog = false }) { Text("Listo") }
+            }
         )
     }
 }
@@ -184,56 +151,66 @@ fun CalendarGrid(date: LocalDate, events: List<Event>, eventTypes: List<EventTyp
     val today = LocalDate.now()
 
     LazyVerticalGrid(columns = GridCells.Fixed(7), modifier = Modifier.fillMaxSize()) {
-        // Huecos vacíos antes del día 1
-        items(dayOfWeekOffset) { Box(modifier = Modifier.padding(4.dp).aspectRatio(1f)) }
+        items(dayOfWeekOffset) {
+            Box(modifier = Modifier.padding(2.dp).aspectRatio(1f))
+        }
 
-        // Los cuadritos de los días
         items(daysInMonth) { day ->
             val dayNumber = day + 1
             val cellDate = yearMonth.atDay(dayNumber)
-
-            // Verificamos si es un día del futuro (Tu requerimiento)
             val isFuture = cellDate.isAfter(today)
-
-            // Buscamos los eventos de este cuadrito en particular
             val eventsInThisDay = events.filter { it.eventDate == cellDate.toString() }
 
-            Box(
-                modifier = Modifier
-                    .padding(4.dp)
-                    .aspectRatio(1f)
-                    // Si es futuro es transparente, si es pasado/hoy tiene fondo gris
-                    .background(if (isFuture) Color.Transparent else Color.LightGray.copy(alpha = 0.2f), shape = MaterialTheme.shapes.small)
-                    // Solo permite hacer clic si NO es futuro
-                    .clickable(enabled = !isFuture) { onDayClick(dayNumber) },
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // El número del día
-                    Text(
-                        text = dayNumber.toString(),
-                        fontSize = 14.sp,
-                        color = if (isFuture) Color.LightGray else Color.Black,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
+            DayCell(
+                day = dayNumber,
+                isFuture = isFuture,
+                events = eventsInThisDay,
+                eventTypes = eventTypes,
+                onClick = { onDayClick(dayNumber) }
+            )
+        }
+    }
+}
 
-                    // Aquí dibujamos los iconos (hasta 3 para que no se desborde el cuadrito)
-                    Row(modifier = Modifier.padding(top = 2.dp), horizontalArrangement = Arrangement.Center) {
-                        eventsInThisDay.take(3).forEach { event ->
-                            val type = eventTypes.find { it.id == event.eventTypeId }
-                            if (type != null) {
-                                Icon(
-                                    Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = Color(type.color),
-                                    modifier = Modifier.size(12.dp) // Icono chiquitito
-                                )
-                            }
-                        }
-                        // Si en un día hay más de 3 eventos, ponemos un "+"
-                        if(eventsInThisDay.size > 3) {
-                            Text("+", fontSize = 10.sp, color = MaterialTheme.colorScheme.primary)
-                        }
+@Composable
+fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<EventType>, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(2.dp)
+            .aspectRatio(1f)
+            .background(
+                color = if (isFuture) Color.Transparent else Color(0x10000000),
+                shape = MaterialTheme.shapes.small
+            )
+            .clickable(enabled = !isFuture) { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = day.toString(),
+                fontSize = 12.sp,
+                color = if (isFuture) Color.LightGray else Color.Black
+            )
+
+            if (events.isNotEmpty()) {
+                if (events.size == 1) {
+                    val type = eventTypes.find { it.id == events[0].eventTypeId }
+                    type?.let {
+                        Icon(AppIcons.getIcon(it.iconName), null, modifier = Modifier.size(18.dp), tint = Color(it.color))
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .background(MaterialTheme.colorScheme.primary, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = events.size.toString(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

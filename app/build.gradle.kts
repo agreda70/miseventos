@@ -64,4 +64,6 @@ dependencies {
 
     // Librería para iconos extendidos (para tener muchas opciones de iconos en tus eventos)
     implementation(libs.androidx.compose.material.icons.extended)
+
+    implementation(libs.androidx.datastore.preferences)
 }

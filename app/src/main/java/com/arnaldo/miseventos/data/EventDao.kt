@@ -29,4 +29,7 @@ interface EventDao {
 
     @Query("SELECT * FROM events WHERE eventDate LIKE :yearMonth || '%'")
     fun getEventsByMonth(yearMonth: String): Flow<List<Event>>
+
+    @Query("SELECT * FROM events")
+    fun getAllEvents(): Flow<List<Event>>
 }

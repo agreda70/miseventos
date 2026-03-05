@@ -12,6 +12,7 @@ import com.arnaldo.miseventos.ui.theme.AdminScreen
 import com.arnaldo.miseventos.ui.theme.CalendarScreen
 import com.arnaldo.miseventos.ui.theme.PinScreen
 import com.arnaldo.miseventos.ui.theme.MisEventosTheme
+import com.arnaldo.miseventos.ui.theme.StatsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,11 +40,18 @@ class MainActivity : ComponentActivity() {
                         "calendar" -> {
                             CalendarScreen(
                                 eventDao = db,
-                                onNavigateToAdmin = { currentScreen = "admin" }
+                                onNavigateToAdmin = { currentScreen = "admin" },
+                                onNavigateToStats = { currentScreen = "stats" }
                             )
                         }
                         "admin" -> {
                             AdminScreen(
+                                eventDao = db,
+                                onBack = { currentScreen = "calendar" }
+                            )
+                        }
+                        "stats" -> { // <--- NUEVA PANTALLA
+                            StatsScreen(
                                 eventDao = db,
                                 onBack = { currentScreen = "calendar" }
                             )

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,7 +32,7 @@ import java.time.format.TextStyle
 import java.util.Locale
 
 @Composable
-fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit) {
+fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigateToStats: () -> Unit) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var showDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -55,6 +56,9 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit) {
             )
             IconButton(onClick = { selectedDate = selectedDate.plusMonths(1) }) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente")
+            }
+            IconButton(onClick = onNavigateToStats) { // <--- NUEVO BOTÓN
+                Icon(androidx.compose.material.icons.Icons.Default.BarChart, contentDescription = "Estadísticas")
             }
             IconButton(onClick = onNavigateToAdmin) {
                 Icon(Icons.Default.Settings, "Administrar")

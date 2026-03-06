@@ -25,6 +25,12 @@ class AppSecurityManager(private val context: Context) {
         }
     }
 
+    suspend fun clearCredentials() {
+        context.dataStore.edit { prefs ->
+            prefs.clear() // Esto borra el PIN y las preguntas de seguridad
+        }
+    }
+
     // Obtener el PIN (Si es null, significa que es la primera vez que abre la app)
     val userPin: Flow<String?> = context.dataStore.data.map { it[PIN_KEY] }
     val securityQuestion: Flow<String?> = context.dataStore.data.map { it[QUESTION_KEY] }

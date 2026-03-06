@@ -52,7 +52,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
             }
             Text(
                 text = "${selectedDate.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${selectedDate.year}",
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleMedium
             )
             IconButton(onClick = { selectedDate = selectedDate.plusMonths(1) }) {
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente")
@@ -112,6 +112,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
     if (showDialog) {
         val eventsToday = eventsByMonth.filter { it.eventDate == selectedDate.toString() }
         AlertDialog(
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
             onDismissRequest = { showDialog = false },
             title = { Text("Eventos del día ${selectedDate.dayOfMonth}") },
             text = {

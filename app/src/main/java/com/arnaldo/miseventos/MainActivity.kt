@@ -36,7 +36,8 @@ class MainActivity : ComponentActivity() {
 
                 // 1. CREAMOS EL FONDO: Un gradiente suave de azul claro a blanco
                 val backgroundBrush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFF13BE6E), Color(0xFFACFBEE))
+                    //colors = listOf(Color(0xFF13BE6E), Color(0xFF2C84F7))
+                    colors = listOf(Color(0xFF00D4FF), Color(0xFF020024))
                 )
 
                 // 2. SCAFFOLD: Nos permite colocar la barra superior fácilmente

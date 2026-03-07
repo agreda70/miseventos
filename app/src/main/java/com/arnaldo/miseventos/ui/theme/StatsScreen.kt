@@ -45,6 +45,7 @@ fun StatsScreen(eventDao: EventDao, onBack: () -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Transparent)
                 .padding(paddingValues)
                 .padding(16.dp)
         ) {

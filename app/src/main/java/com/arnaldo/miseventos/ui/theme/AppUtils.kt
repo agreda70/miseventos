@@ -2,7 +2,6 @@ package com.arnaldo.miseventos.ui.theme
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object AppIcons {
@@ -17,7 +16,11 @@ object AppIcons {
         "Dinero" to Icons.Default.AttachMoney,
         "Viaje" to Icons.Default.Flight,
         "Estrella" to Icons.Default.Star,
-        "Corazón" to Icons.Default.Favorite
+        "Corazón" to Icons.Default.Favorite,
+        "Corte" to Icons.Default.ContentCut,
+        "Saludo" to Icons.Default.SignLanguage,
+        "Karaoke" to Icons.Default.Mic,
+        "Mascota" to Icons.Default.Pets
     )
 
     fun getIcon(name: String): ImageVector = list[name] ?: Icons.Default.Circle

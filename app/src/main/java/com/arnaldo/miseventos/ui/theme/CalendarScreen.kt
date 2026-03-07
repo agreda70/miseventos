@@ -1,6 +1,8 @@
 package com.arnaldo.miseventos.ui.theme
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -18,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -43,7 +47,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.background(Color(0x80FFFFFF), RoundedCornerShape(8.dp)).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -72,7 +76,8 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
                 if (count > 0) {
                     Card(
                         modifier = Modifier.padding(end = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(type.color).copy(alpha = 0.1f))
+                        colors = CardDefaults.cardColors(containerColor = Color(type.color).copy(alpha = 0.1f)),
+                        border = BorderStroke(1.dp, Color(0x33FFFFFF))
                     ) {
                         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(AppIcons.getIcon(type.iconName), null, modifier = Modifier.size(16.dp), tint = Color(type.color))
@@ -84,7 +89,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
         }
 
         // Días de la semana
-        Row(modifier = Modifier.fillMaxWidth()) {
+        Row(modifier = Modifier.background(Color(0x33FFFFFF), RoundedCornerShape(8.dp)).fillMaxWidth()) {
             val diasSemana = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
             diasSemana.forEach { dia ->
                 Text(
@@ -184,7 +189,7 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
             .padding(2.dp)
             .aspectRatio(1f)
             .background(
-                color = if (isFuture) Color.Transparent else Color(0x10000000),
+                color = if (isFuture) Color(0x33FFFFFF) else Color(0x33000000),
                 shape = MaterialTheme.shapes.small
             )
             .clickable(enabled = !isFuture) { onClick() },
@@ -194,7 +199,7 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
             Text(
                 text = day.toString(),
                 fontSize = 12.sp,
-                color = if (isFuture) Color.LightGray else Color.Black
+                color = Color.Black
             )
 
             if (events.isNotEmpty()) {
@@ -206,14 +211,15 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
                 } else {
                     Box(
                         modifier = Modifier
-                            .size(20.dp)
-                            .background(MaterialTheme.colorScheme.primary, CircleShape),
+                            .size(30.dp)
+                            .border(BorderStroke(1.dp, Color(0x10FFFFFF)))
+                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(5.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = events.size.toString(),
                             color = Color.White,
-                            fontSize = 10.sp,
+                            fontSize = if (isFuture) 10.sp else 12.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }

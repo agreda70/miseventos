@@ -8,6 +8,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -37,7 +39,7 @@ class MainActivity : ComponentActivity() {
                 // 1. CREAMOS EL FONDO: Un gradiente suave de azul claro a blanco
                 val backgroundBrush = Brush.verticalGradient(
                     //colors = listOf(Color(0xFF13BE6E), Color(0xFF2C84F7))
-                    colors = listOf(Color(0xFF00D4FF), Color(0xFF020024))
+                    colors = listOf(Color(0xFF090979), Color(0xFF020024))
                 )
 
                 // 2. SCAFFOLD: Nos permite colocar la barra superior fácilmente
@@ -46,10 +48,21 @@ class MainActivity : ComponentActivity() {
                         // Solo mostramos la barra si NO estamos en la pantalla del PIN
                         if (currentScreen != "auth") {
                             TopAppBar(
-                                title = { Text("Mis Eventos", fontWeight = FontWeight.Bold) },
+                                title = { Text("Mis Eventos", color = Color.White, fontWeight = FontWeight.Bold) },
                                 colors = TopAppBarDefaults.topAppBarColors(
                                     containerColor = Color.Transparent // Transparente para ver el fondo
-                                )
+                                ),
+                                navigationIcon = {
+                                    if (currentScreen != "calendar") {
+                                        IconButton(onClick = { currentScreen = "calendar" }) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                                contentDescription = "Volver",
+                                                tint = Color.White
+                                            )
+                                        }
+                                    }
+                                }
                             )
                         }
                     }

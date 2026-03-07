@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -45,30 +46,31 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Row(
-            modifier = Modifier.background(Color(0x80FFFFFF), RoundedCornerShape(8.dp)).fillMaxWidth(),
+            modifier = Modifier.background(Color(0x80020024), RoundedCornerShape(8.dp)).fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { selectedDate = selectedDate.minusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Mes anterior")
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Mes anterior", tint = Color.White)
             }
             Text(
                 text = "${selectedDate.month.getDisplayName(TextStyle.FULL, Locale("es", "ES")).uppercase()} ${selectedDate.year}",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White
             )
             IconButton(onClick = { selectedDate = selectedDate.plusMonths(1) }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente")
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente", tint = Color.White)
             }
             IconButton(onClick = onNavigateToStats) { // <--- NUEVO BOTÓN
-                Icon(androidx.compose.material.icons.Icons.Default.BarChart, "Estadísticas")
+                Icon(androidx.compose.material.icons.Icons.Default.BarChart, "Estadísticas", tint = Color.White)
             }
             IconButton(onClick = onNavigateToAdmin) {
-                Icon(Icons.Default.Settings, "Administrar")
+                Icon(Icons.Default.Settings, "Administrar", tint = Color.White)
             }
         }
 
         // Tarjetas de resumen del mes
-        LazyRow(modifier = Modifier.padding(vertical = 8.dp)) {
+        /*LazyRow(modifier = Modifier.padding(vertical = 8.dp)) {
             items(eventTypes) { type ->
                 val count = eventsByMonth.count { it.eventTypeId == type.id }
                 if (count > 0) {
@@ -79,7 +81,51 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
                     ) {
                         Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                             Icon(AppIcons.getIcon(type.iconName), null, modifier = Modifier.size(16.dp), tint = Color(type.color))
-                            Text(" ${type.name}: $count", style = MaterialTheme.typography.labelMedium)
+                            Text(" ${type.name}: $count", style = MaterialTheme.typography.labelMedium, color = Color.LightGray)
+                        }
+                    }
+                }
+            }
+        }*/
+        LazyRow(
+            modifier = Modifier
+                .padding(vertical = 12.dp)
+                .fillMaxWidth()
+        ) {
+            items(eventTypes) { type ->
+                val count = eventsByMonth.count { it.eventTypeId == type.id }
+                if (count > 0) {
+                    ElevatedCard(
+                        modifier = Modifier.padding(end = 8.dp, bottom = 4.dp), // Margen inferior para la sombra
+                        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.elevatedCardColors(containerColor = Color(0x80FFFFFF)),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Círculo de fondo suave para el icono
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .background(Color(type.color).copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = AppIcons.getIcon(type.iconName),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = Color(type.color)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "${type.name}: $count",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.DarkGray
+                            )
                         }
                     }
                 }
@@ -95,7 +141,8 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
                     modifier = Modifier.weight(1f),
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp
+                    fontSize = 12.sp,
+                    color = Color.White
                 )
             }
         }
@@ -187,7 +234,7 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
             .padding(2.dp)
             .aspectRatio(1f)
             .background(
-                color = if (isFuture) Color(0x33FFFFFF) else Color(0x33000000),
+                color = if (isFuture) Color(0x33000000) else Color(0x33FFFFFF),
                 shape = MaterialTheme.shapes.small
             )
             .clickable(enabled = !isFuture) { onClick() },
@@ -197,7 +244,7 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
             Text(
                 text = day.toString(),
                 fontSize = 12.sp,
-                color = Color.Black
+                color = if (isFuture) Color.Black else Color.White
             )
 
             if (events.isNotEmpty()) {

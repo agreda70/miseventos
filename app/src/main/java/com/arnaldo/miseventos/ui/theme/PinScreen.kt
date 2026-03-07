@@ -3,9 +3,7 @@ package com.arnaldo.miseventos.ui.theme
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -67,7 +65,7 @@ fun PinScreen(
             Text(savedQuestion ?: "")
             OutlinedTextField(value = inputAnswer, onValueChange = { inputAnswer = it }, label = { Text("Tu respuesta") })
             Button(onClick = {
-                if(inputAnswer.trim().lowercase() == savedAnswer?.trim()?.lowercase()) {
+                if(inputAnswer.trim().equals(savedAnswer?.trim(), ignoreCase = true)) {
                     Toast.makeText(context, "Tu PIN es: $savedPin", Toast.LENGTH_LONG).show()
                     isRecovering = false
                 }

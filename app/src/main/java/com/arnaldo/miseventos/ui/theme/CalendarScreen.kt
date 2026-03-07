@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
@@ -21,7 +20,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,7 +60,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente")
             }
             IconButton(onClick = onNavigateToStats) { // <--- NUEVO BOTÓN
-                Icon(androidx.compose.material.icons.Icons.Default.BarChart, contentDescription = "Estadísticas")
+                Icon(androidx.compose.material.icons.Icons.Default.BarChart, "Estadísticas")
             }
             IconButton(onClick = onNavigateToAdmin) {
                 Icon(Icons.Default.Settings, "Administrar")

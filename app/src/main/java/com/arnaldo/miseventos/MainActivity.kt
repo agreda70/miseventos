@@ -38,7 +38,6 @@ class MainActivity : ComponentActivity() {
 
                 // 1. CREAMOS EL FONDO: Un gradiente suave de azul claro a blanco
                 val backgroundBrush = Brush.verticalGradient(
-                    //colors = listOf(Color(0xFF13BE6E), Color(0xFF2C84F7))
                     colors = listOf(Color(0xFF090979), Color(0xFF020024))
                 )
 

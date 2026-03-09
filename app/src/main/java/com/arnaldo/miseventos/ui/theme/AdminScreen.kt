@@ -26,11 +26,14 @@ import androidx.compose.material.icons.filled.LockReset
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -43,9 +46,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.arnaldo.miseventos.data.EventDao
 import com.arnaldo.miseventos.data.EventType
@@ -70,27 +75,33 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
             .background(Color.Transparent)
             .padding(16.dp)) {
 
-        OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nombre") }, modifier = Modifier.fillMaxWidth())
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = MyInputDefaults.whiteColors()
+        )
 
         // Selector de Iconos (Fila con scroll)
-        Text("Selecciona un icono:", modifier = Modifier.padding(top = 8.dp))
+        Text("Selecciona un icono:", modifier = Modifier.padding(top = 8.dp), color = Color.White)
         LazyRow {
             items(AppIcons.list.keys.toList()) { iconKey ->
                 IconButton(
                     onClick = { selectedIcon = iconKey },
                     modifier = Modifier.background(if (selectedIcon == iconKey) Color.LightGray else Color.Transparent, shape = CircleShape)
-                ) { Icon(AppIcons.getIcon(iconKey), contentDescription = null) }
+                ) { Icon(AppIcons.getIcon(iconKey), contentDescription = null, tint = Color.White) }
             }
         }
 
         // Selector de Colores
-        Text("Selecciona un color:")
+        Text("Selecciona un color:", color = Color.White)
         LazyRow {
             items(AppColors.selection) { colorLong ->
                 Box(
                     modifier = Modifier.size(40.dp).padding(4.dp).background(Color(colorLong), CircleShape)
                         .clickable { selectedColor = colorLong }
-                        .border(if (selectedColor == colorLong) 3.dp else 0.dp, Color.Black, CircleShape)
+                        .border(if (selectedColor == colorLong) 3.dp else 0.dp, Color.White, CircleShape)
                 )
             }
         }
@@ -115,7 +126,7 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
         HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
         // --- NUEVA SECCIÓN DE SEGURIDAD ---
-        Text("Seguridad", style = MaterialTheme.typography.titleMedium)
+        Text("Seguridad", style = MaterialTheme.typography.titleMedium, color = Color.White)
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedButton(
             onClick = { showConfirmDialog = true }, // <--- AHORA ABRE EL DIÁLOGO
@@ -129,6 +140,7 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
 
         if (showConfirmDialog) {
             AlertDialog(
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
                 onDismissRequest = { showConfirmDialog = false },
                 title = { Text("¿Estás seguro?") },
                 text = { Text("Esto borrará tu PIN actual y la aplicación se cerrará. Tendrás que configurar uno nuevo al volver a entrar.") },
@@ -155,30 +167,59 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
         // Aquí empieza tu LazyColumn de tipos de eventos...
 
         // LISTA CRUD
-        LazyColumn {
-            items(eventTypes) { type ->
-                ListItem(
-                    headlineContent = { Text(type.name) },
-                    leadingContent = { Icon(AppIcons.getIcon(type.iconName), null, tint = Color(type.color)) },
-                    trailingContent = {
-                        Row {
-                            IconButton(onClick = {
-                                editingType = type
-                                name = type.name
-                                selectedIcon = type.iconName
-                                selectedColor = type.color
-                            }) { Icon(Icons.Default.Edit, "Editar") }
-
-                            IconButton(onClick = {
-                                scope.launch {
-                                    val count = eventDao.countEventsWithType(type.id)
-                                    if (count == 0) eventDao.deleteEventType(type)
-                                    else Toast.makeText(context, "No se puede borrar: tiene registros", Toast.LENGTH_SHORT).show()
+        Card(
+            modifier = Modifier.fillMaxSize(), // Toma el resto de la pantalla
+            colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+        ) {
+            LazyColumn(
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                items(eventTypes) { type ->
+                    ListItem(
+                        colors = ListItemDefaults.colors(containerColor = Color(0X10FFFFFF)), // Fondo transparente para que se vea el blanco del Card
+                        headlineContent = { Text(type.name, fontWeight = FontWeight.Medium, color = Color.LightGray) },
+                        leadingContent = {
+                            // Icono con círculo igual que en el resumen
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color(type.color).copy(alpha = 0.15f), CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(AppIcons.getIcon(type.iconName), null, tint = Color(type.color))
+                            }
+                        },
+                        trailingContent = {
+                            Row {
+                                IconButton(onClick = {
+                                    editingType = type
+                                    name = type.name
+                                    selectedIcon = type.iconName
+                                    selectedColor = type.color
+                                }) {
+                                    Icon(Icons.Default.Edit, "Editar", tint = Color.Gray)
                                 }
-                            }) { Icon(Icons.Default.Delete, "Borrar", tint = Color.Red) }
+
+                                IconButton(onClick = {
+                                    scope.launch {
+                                        val count = eventDao.countEventsWithType(type.id)
+                                        if (count == 0) {
+                                            eventDao.deleteEventType(type)
+                                        } else {
+                                            Toast.makeText(context, "No se puede borrar: tiene registros", Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }) {
+                                    Icon(Icons.Default.Delete, "Borrar", tint = Color.Red.copy(alpha = 0.7f))
+                                }
+                            }
                         }
-                    }
-                )
+                    )
+                    // Separador sutil entre elementos
+                    HorizontalDivider(color = Color.LightGray.copy(alpha = 0.3f), modifier = Modifier.padding(horizontal = 16.dp))
+                }
             }
         }
     }

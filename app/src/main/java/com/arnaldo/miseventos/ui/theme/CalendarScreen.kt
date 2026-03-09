@@ -70,23 +70,6 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
         }
 
         // Tarjetas de resumen del mes
-        /*LazyRow(modifier = Modifier.padding(vertical = 8.dp)) {
-            items(eventTypes) { type ->
-                val count = eventsByMonth.count { it.eventTypeId == type.id }
-                if (count > 0) {
-                    Card(
-                        modifier = Modifier.padding(end = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(type.color).copy(alpha = 0.1f)),
-                        border = BorderStroke(1.dp, Color(0x33FFFFFF))
-                    ) {
-                        Row(modifier = Modifier.padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(AppIcons.getIcon(type.iconName), null, modifier = Modifier.size(16.dp), tint = Color(type.color))
-                            Text(" ${type.name}: $count", style = MaterialTheme.typography.labelMedium, color = Color.LightGray)
-                        }
-                    }
-                }
-            }
-        }*/
         LazyRow(
             modifier = Modifier
                 .padding(vertical = 12.dp)
@@ -244,7 +227,7 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
             Text(
                 text = day.toString(),
                 fontSize = 12.sp,
-                color = if (isFuture) Color.Black else Color.White
+                color = if (isFuture) Color.LightGray else Color.White
             )
 
             if (events.isNotEmpty()) {

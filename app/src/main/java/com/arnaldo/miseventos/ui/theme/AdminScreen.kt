@@ -131,7 +131,7 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
         OutlinedButton(
             onClick = { showConfirmDialog = true }, // <--- AHORA ABRE EL DIÁLOGO
             modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFFF6CE2), containerColor = Color(0x77FF0000))
         ) {
             Icon(Icons.Default.LockReset, contentDescription = null)
             Spacer(modifier = Modifier.width(8.dp))

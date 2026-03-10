@@ -227,7 +227,7 @@ fun DayCell(day: Int, isFuture: Boolean, events: List<Event>, eventTypes: List<E
             Text(
                 text = day.toString(),
                 fontSize = 12.sp,
-                color = if (isFuture) Color.LightGray else Color.White
+                color = if (isFuture) Color.DarkGray else Color.White
             )
 
             if (events.isNotEmpty()) {

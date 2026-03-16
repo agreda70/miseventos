@@ -2,16 +2,19 @@ package com.arnaldo.miseventos.ui.theme
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.arnaldo.miseventos.AppSecurityManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -40,48 +44,106 @@ fun PinScreen(
     val savedQuestion by securityManager.securityQuestion.collectAsState(initial = null)
     val savedAnswer by securityManager.securityAnswer.collectAsState(initial = null)
 
+    var isCheckingStorage by remember { mutableStateOf(true) }
+
+    LaunchedEffect(savedPin) {
+        // Si ya no es null, o si es null pero ya pasó un tiempo mínimo de carga
+        // el estado de "chequeo" termina.
+        delay(500) // Un pequeño respiro para asegurar la lectura
+        isCheckingStorage = false
+    }
+
     var inputPin by remember { mutableStateOf("") }
     var inputQuestion by remember { mutableStateOf("") }
     var inputAnswer by remember { mutableStateOf("") }
     var isRecovering by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+    if (isCheckingStorage) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = Color.White)
+        }
+    } else {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
 
-        if (savedPin == null) {
-            // --- MODO CONFIGURACIÓN INICIAL ---
-            Text("Configura tu acceso", color = Color.White, style = MaterialTheme.typography.headlineMedium)
-            OutlinedTextField(value = inputPin, colors = MyInputDefaults.whiteColors(), onValueChange = { if(it.length <= 4) inputPin = it }, label = { Text("Crea un PIN de 4 dígitos") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword))
-            OutlinedTextField(value = inputQuestion, colors = MyInputDefaults.whiteColors(), onValueChange = { inputQuestion = it }, label = { Text("Pregunta de seguridad (ej: Nombre mascota)") })
-            OutlinedTextField(value = inputAnswer, colors = MyInputDefaults.whiteColors(), onValueChange = { inputAnswer = it }, label = { Text("Respuesta") })
+            if (savedPin == null) {
+                // --- MODO CONFIGURACIÓN INICIAL ---
+                Text(
+                    "Configura tu acceso",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                OutlinedTextField(
+                    value = inputPin,
+                    colors = MyInputDefaults.whiteColors(),
+                    onValueChange = { if (it.length <= 4) inputPin = it },
+                    label = { Text("Crea un PIN de 4 dígitos") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                )
+                OutlinedTextField(
+                    value = inputQuestion,
+                    colors = MyInputDefaults.whiteColors(),
+                    onValueChange = { inputQuestion = it },
+                    label = { Text("Pregunta de seguridad (ej: Nombre mascota)") })
+                OutlinedTextField(
+                    value = inputAnswer,
+                    colors = MyInputDefaults.whiteColors(),
+                    onValueChange = { inputAnswer = it },
+                    label = { Text("Respuesta") })
 
-            Button(onClick = {
-                if(inputPin.length == 4 && inputQuestion.isNotBlank() && inputAnswer.isNotBlank()) {
-                    scope.launch { securityManager.saveCredentials(inputPin, inputQuestion, inputAnswer) }
-                }
-            }) { Text("Empezar a usar la app") }
+                Button(onClick = {
+                    if (inputPin.length == 4 && inputQuestion.isNotBlank() && inputAnswer.isNotBlank()) {
+                        scope.launch {
+                            securityManager.saveCredentials(
+                                inputPin,
+                                inputQuestion,
+                                inputAnswer
+                            )
+                        }
+                    }
+                }) { Text("Empezar a usar la app") }
 
-        } else if (isRecovering) {
-            // --- MODO RECUPERACIÓN ---
-            Text("Recuperar PIN", style = MaterialTheme.typography.headlineSmall)
-            Text(savedQuestion ?: "")
-            OutlinedTextField(value = inputAnswer, colors = MyInputDefaults.whiteColors(), onValueChange = { inputAnswer = it }, label = { Text("Tu respuesta") })
-            Button(onClick = {
-                if(inputAnswer.trim().equals(savedAnswer?.trim(), ignoreCase = true)) {
-                    Toast.makeText(context, "Tu PIN es: $savedPin", Toast.LENGTH_LONG).show()
-                    isRecovering = false
-                }
-            }) { Text("Verificar") }
-            TextButton(onClick = { isRecovering = false }) { Text("Volver") }
+            } else if (isRecovering) {
+                // --- MODO RECUPERACIÓN ---
+                Text("Recuperar PIN", style = MaterialTheme.typography.headlineSmall, color = Color.White)
+                Text(savedQuestion ?: "", color = Color.LightGray)
+                OutlinedTextField(
+                    value = inputAnswer,
+                    colors = MyInputDefaults.whiteColors(),
+                    onValueChange = { inputAnswer = it },
+                    label = { Text("Tu respuesta") })
+                Button(onClick = {
+                    if (inputAnswer.trim().equals(savedAnswer?.trim(), ignoreCase = true)) {
+                        Toast.makeText(context, "Tu PIN es: $savedPin", Toast.LENGTH_LONG).show()
+                        isRecovering = false
+                    }
+                }) { Text("Verificar") }
+                TextButton(onClick = { isRecovering = false }) { Text("Volver") }
 
-        } else {
-            // --- MODO LOGIN NORMAL ---
-            Text("Ingresa tu PIN", color = Color.White, style = MaterialTheme.typography.headlineSmall)
-            OutlinedTextField(value = inputPin, colors = MyInputDefaults.whiteColors(), onValueChange = {
-                inputPin = it
-                if(it == savedPin) onAuthSuccess()
-            }, label = { Text("PIN") }, visualTransformation = PasswordVisualTransformation(), keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword))
+            } else {
+                // --- MODO LOGIN NORMAL ---
+                Text(
+                    "Ingresa tu PIN",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                OutlinedTextField(
+                    value = inputPin,
+                    colors = MyInputDefaults.whiteColors(),
+                    onValueChange = {
+                        inputPin = it
+                        if (it == savedPin) onAuthSuccess()
+                    },
+                    label = { Text("PIN") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword)
+                )
 
-            TextButton(onClick = { isRecovering = true }) { Text("Olvidé mi PIN") }
+                TextButton(onClick = { isRecovering = true }) { Text("Olvidé mi PIN", color = Color.LightGray) }
+            }
         }
     }
 }

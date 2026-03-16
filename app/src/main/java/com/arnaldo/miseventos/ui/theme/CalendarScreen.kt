@@ -62,7 +62,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
                 Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Mes siguiente", tint = Color.White)
             }
             IconButton(onClick = onNavigateToStats) { // <--- NUEVO BOTÓN
-                Icon(androidx.compose.material.icons.Icons.Default.BarChart, "Estadísticas", tint = Color.White)
+                Icon(Icons.Default.BarChart, "Estadísticas", tint = Color.White)
             }
             IconButton(onClick = onNavigateToAdmin) {
                 Icon(Icons.Default.Settings, "Administrar", tint = Color.White)
@@ -81,7 +81,7 @@ fun CalendarScreen(eventDao: EventDao, onNavigateToAdmin: () -> Unit, onNavigate
                     ElevatedCard(
                         modifier = Modifier.padding(end = 8.dp, bottom = 4.dp), // Margen inferior para la sombra
                         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp),
-                        colors = CardDefaults.elevatedCardColors(containerColor = Color(0x80FFFFFF)),
+                        colors = CardDefaults.elevatedCardColors(containerColor = Color(0x80FFFFFF), contentColor = Color.LightGray),
                         shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
                     ) {
                         Row(

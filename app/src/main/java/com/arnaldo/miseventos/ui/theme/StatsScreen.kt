@@ -143,7 +143,7 @@ fun StatsScreen(eventDao: EventDao, onBack: () -> Unit) {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            // Cuadrito con el icono
+                            // Cuadro con el icono
                             Box(
                                 modifier = Modifier
                                     .size(36.dp)

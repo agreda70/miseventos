@@ -42,6 +42,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -67,7 +68,7 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
     var name by remember { mutableStateOf("") }
     var showConfirmDialog by remember { mutableStateOf(false) }
     var selectedIcon by remember { mutableStateOf("Estrella") }
-    var selectedColor by remember { mutableStateOf(AppColors.selection[0]) }
+    var selectedColor by remember { mutableLongStateOf(AppColors.selection[0]) }
     var editingType by remember { mutableStateOf<EventType?>(null) } // Si no es null, estamos editando
 
     Column(
@@ -212,7 +213,7 @@ fun AdminScreen(eventDao: EventDao, onBack: () -> Unit, onResetPin: () -> Unit) 
                                         }
                                     }
                                 }) {
-                                    Icon(Icons.Default.Delete, "Borrar", tint = Color.Red.copy(alpha = 0.7f))
+                                    Icon(Icons.Default.Delete, "Borrar", tint = Color(0xFFAAAAAA))
                                 }
                             }
                         }
